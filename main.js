@@ -96,18 +96,12 @@ async function getQuote() {
   if (!currentTrade.from || !currentTrade.to || !document.getElementById("from_amount").value) return;
 
   let amount = Number(document.getElementById("from_amount").value * 10 ** currentTrade.from.decimals);
-
-  await loadWeb3();
-  const web3 = window.web3;
-  const quote;
-  const networkId = await web3.eth.net.getId()
-  const networkData = Dpixels.networks[networkId]
-  if(networkData){
-    const dpixels = new web3.eth.Contract(Dpixels.abi, networkData.address)
-    quote = await dpixels.methods.swapExactInputSingle(currentTrade.from.address, currentTrade.to.address, amount).call();
-  }else{
-    window.alert('eth-swap contract has not been deployed to the detected network.')
-  }
+  const quote = await Moralis.Plugins.oneInch.quote({
+    chain: "eth", // The blockchain you want to use (eth/bsc/polygon)
+    fromTokenAddress: currentTrade.from.address, // The token you want to swap
+    toTokenAddress: currentTrade.to.address, // The token you want to receive
+    amount: amount,
+  });
   console.log(quote);
   document.getElementById("gas_estimate").innerHTML = quote.estimatedGas;
   document.getElementById("to_amount").value = quote.toTokenAmount / 10 ** quote.toToken.decimals;
@@ -133,7 +127,17 @@ async function trySwap() {
     }
   }
   try {
-    let receipt = await doSwap(address, amount);
+  await loadWeb3();
+  const web3 = window.web3;
+  const quote;
+  const networkId = await web3.eth.net.getId()
+  const networkData = Dpixels.networks[networkId]
+  if(networkData){
+    const dpixels = new web3.eth.Contract(Dpixels.abi, networkData.address)
+    quote = await dpixels.methods.swapExactInputSingle(currentTrade.from.address, currentTrade.to.address, amount).call();
+  }else{
+    window.alert('eth-swap contract has not been deployed to the detected network.')
+  }
     alert("Swap Complete");
   } catch (error) {
     console.log(error);

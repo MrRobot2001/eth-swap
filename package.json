@@ -1,0 +1,7 @@
+{
+  "type":"module",
+  "dependencies": {
+    "ganache-cli": "^6.12.2",
+    "truffle": "^5.4.19"
+  }
+}
